@@ -1,0 +1,80 @@
+﻿<form id="frmBusquedaInventario">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Consulta de Inventario
+
+                <div class="ms-auto">
+                    <button data-form="busqueda_inventario" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <table id="tblConsultaInventarios" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th colspan="5">
+                            <input name="txtBuscarNomProductoInventario" id="txtBuscarNomProductoInventario" type="search" class="form-control" placeholder="Buscar inventarios por Nom_producto, Codigo" />
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>Nom_producto</th>
+                        <th>Codigo</th>
+                        <th>Canti_prod_entrante</th>
+                        <th>Canti_prod_saliente</th>
+                        <th>Estado_actual</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</form>
+<script>
+    listarInventarios();
+
+    txtBuscarNomProductoInventario.addEventListener('keyup', e => {
+        listarInventarios(txtBuscarNomProductoInventario.value);
+    });
+
+    async function listarInventarios(buscar='') {
+        const respuesta = await fetch(`/api/Inventario/buscar?buscar=${buscar}`, {
+            method:'GET',
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }), inventarios = await respuesta.json();
+        let filas = '';
+        inventarios.forEach(inventario => {
+            filas += `
+                <tr onClick='modificarInventario(${JSON.stringify(inventario)})'>
+                    <td>${inventario.Nom_producto}</td>
+                    <td>${inventario.Codigo}</td>
+                    <td>${inventario.Canti_prod_entrante}</td>
+                    <td>${inventario.Canti_prod_saliente}</td>
+                    <td>${inventario.Estado_actual}</td>
+                    <td><button type="button" class="btn btn-outline-danger btn-sm" onClick='eliminarInventario(${JSON.stringify(inventario)}, event)'>DEL</button>
+                </tr>
+            `;
+        });
+        document.querySelector("#tblConsultaInventarios > tbody").innerHTML = filas;
+    }
+    async function eliminarInventario(inventario, event) {
+        event.preventDefault();
+
+        if (confirm(`Esta seguro de eliminar a ${inventario.Nom_producto.trim()}?`) ) {
+            const respuesta = await fetch(`/api/Inventario/${inventario.IdInventario}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }), data = await respuesta.text();
+            if (data && data.length > 0) {
+                alert(`Error, nose pudo eliminar el inventario ${inventario.Nom_producto}, error: ${data}`);
+                return;
+            }
+            listarInventarios();
+        }
+    }
+</script>

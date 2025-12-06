@@ -1,0 +1,110 @@
+﻿<form id="frmProducto">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Administracion de Productos
+
+                <div class="ms-auto">
+                    <button data-form="producto" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <div class="row p-1">
+                <div class="col-3 col-md-2">Nom_prod</div>
+                <div class="col-9 col-md-4">
+                    <input required type="text" class="form-control" id="txtNomProd" name="txtNomProd" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">Codigo</div>
+                <div class="col-9 col-md-8">
+                    <input required type="text" class="form-control" id="txtCodigoProd" name="txtCodigoProd" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">Descripcion</div>
+                <div class="col-9 col-md-10">
+                    <input required type="text" class="form-control" id="txtDescripcionProd" name="txtDescripcionProd" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">Precio</div>
+                <div class="col-9 col-md-10">
+                    <input required type="text" class="form-control" id="txtPrecioProd" name="txtPrecioProd" />
+                </div>
+            </div>           
+            <div class="row p-1">
+                <div class="col-12 text-center">
+                    <input type="submit" class="btn btn-outline-primary" value="Guardar" />
+                    <input type="reset" class="btn btn-outline-warning" value="Nuevo" />
+                    <input type="button" class="btn btn-outline-success" value="Buscar" onclick="abrirVentana('busqueda_producto')" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    var accion = 'nuevo',
+        IdProducto = 0;
+
+    const frmProducto = document.getElementById("frmProducto");
+    const txtNomProd = document.getElementById("txtNomProd");
+    const txtCodigoProd = document.getElementById("txtCodigoProd");
+    const txtDescripcionProd = document.getElementById("txtDescripcionProd");
+    const txtPrecioProd = document.getElementById("txtPrecioProd");
+
+    frmProducto.addEventListener('submit', e => {
+        e.preventDefault();
+        guardarProducto();       
+    });
+    frmProducto.addEventListener('reset', e => {
+        e.preventDefault();
+        limpiarDatosProducto();
+    });
+    async function guardarProducto() {
+        let datos = {
+            Nom_prod: txtNomProd.value,
+            Codigo: txtCodigoProd.value,
+            Descripcion: txtDescripcionProd.value,
+            Precio: txtPrecioProd.value,
+            
+        },
+            url = 'https://localhost:7013/api/Producto',
+            method = 'POST';
+        if (accion == "modificar") {
+            method = 'PUT';
+            url = `https://localhost:7013/api/Producto/${IdProducto}`;
+            datos.IdProducto = IdProducto;
+        }
+        const respuesta = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(datos)
+        }), producto = await respuesta.json();
+        if ((producto?.IdProducto || 0) > 0) {
+            limpiarDatosProducto();
+            listarProductos(txtBuscarProducto.value || '');
+        }
+    }
+    function limpiarDatosProducto() {
+        accion = "nuevo";
+        IdProducto = 0;
+        txtNomProd.value = "";
+        txtCodigoProd.value = "";
+        txtDescripcionProd.value = "";
+        txtPrecioProd.value = "";
+        
+    }
+    function modificarProducto(producto) {
+        accion = "modificar";
+        IdProducto = producto.IdProducto;
+        txtNomProd.value = producto.Nom_prod;
+        txtCodigoProd.value = producto.Codigo;
+        txtDescripcionProd.value = producto.Descripcion;
+        txtPrecioProd.value = producto.Precio;
+       
+    }
+</script>

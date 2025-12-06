@@ -1,0 +1,136 @@
+﻿<form id="frmEmpleado">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Administracion de Empleados
+
+                <div class="ms-auto">
+                    <button data-form="empleado" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <div class="row p-1">
+                <div class="col-3 col-md-2">Nombre</div>
+                <div class="col-9 col-md-4">
+                    <input required type="text" class="form-control" id="txtNombreEmpleado" name="txtNombreEmpleado" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">Apellido</div>
+                <div class="col-9 col-md-10">
+                    <input required type="text" class="form-control" id="txtApellidoEmpleado" name="txtApellidoEmpleado" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">Codigo</div>
+                <div class="col-9 col-md-8">
+                    <input required type="text" class="form-control" id="txtCodigoEmpleado" name="txtCodigoEmpleado" />
+                </div>
+            </div>            
+            <div class="row p-1">
+                <div class="col-3 col-md-2">Telefono</div>
+                <div class="col-9 col-md-4">
+                    <input type="text" class="form-control" id="txtTelefonoEmpleado" name="txtTelefonoEmpleado" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">Cargo</div>
+                <div class="col-9 col-md-4">
+                    <input required type="text" class="form-control" id="txtCargoEmpleado" name="txtCargoEmpleado" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">FOTO</div>
+                <div class="col-9 col-md-4">
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="imgFotoEmpleado">Subir</label>
+                        <input type="file" class="form-control" id="imgFotoEmpleado" name="imgFotoEmpleado"
+                               accept="image/*" onchange="seleccionarImg(this)" />
+                    </div>
+                </div>
+                <div class="col-3 col-md-4">
+                    <img class="img-thumbnail rounded" id="imgPreVisualizacionFotoEmpleado" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-12 text-center">
+                    <input type="submit" class="btn btn-outline-primary" value="Guardar" />
+                    <input type="reset" class="btn btn-outline-warning" value="Nuevo" />
+                    <input type="button" class="btn btn-outline-success" value="Buscar" onclick="abrirVentana('busqueda_empleado')" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    var accion = 'nuevo',
+        IdEmpleados = 0,
+        miFoto = '';
+    frmEmpleado.addEventListener('submit', e => {
+        e.preventDefault();
+        guardarEmpleado();
+    });
+    frmEmpleado.addEventListener('reset', e => {
+        e.preventDefault();
+        limpiarDatosEmpleado();
+    });
+    function seleccionarImg(file) {
+        let archivo = file.files[0] || '';
+        const lector = new FileReader();
+        lector.onload = e=> {
+            miFoto = e.target.result;
+            imgPreVisualizacionFotoEmpleado.src = miFoto;
+        };
+        lector.readAsDataURL(archivo);
+    }
+    async function guardarEmpleado() {
+        let datos = {
+            Nombre: txtNombreEmpleado.value,
+            Apellido: txtApellidoEmpleado.value,
+            Codigo: txtCodigoEmpleado.value,
+            Telefono: txtTelefonoEmpleado.value,           
+            Cargo: txtCargoTelefonoEmpleado.value,           
+            foto: miFoto.split(',')[1] || ''           
+        },
+            url = 'https://localhost:7013/api/Empleados',
+            method = 'POST';
+        if (accion == "modificar") {
+            method = 'PUT';
+            url = `https://localhost:7013/api/Empleados/${IdEmpleados}`;
+            datos.IdEmpleados = IdEmpleados;
+        }
+        const respuesta = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(datos)
+        }), empleado = await respuesta.json();
+        if ((empleado?.IdEmpleados || 0) > 0) {
+            limpiarDatosEmpleado();
+            listarEmpleados(txtBuscarEmpleado.value || '');
+        }
+    }
+    function limpiarDatosEmpleado() {
+        accion = "nuevo";
+        IdEmpleados = 0;        
+        txtNombreEmpleado.value = "";
+        txtApellidoEmpleado.value = "";
+        txtCodigoEmpleado.value = "";        
+        txtTelefonoEmpleado.value = "";       
+        txtCargoEmpleado.value = "";
+        miFoto = '';
+        imgPreVisualizacionFotoEmpleado.src= '';
+    }
+    function modificarEmpleado(empleado) {
+        accion = "modificar";
+        IdEmpleados = empleado.IdEmpleados;
+        txtNombreEmpleado.value = empleado.nombre;
+        txtApellidoEmpleado.value = empleado.nombre;
+        txtCodigoEmpleado.value = empleado.codigo;        
+        txtTelefonoEmpleado.value = empleado.direccion;
+        txtCargoEmpleado.value = empleado.telefono;
+        miFoto = 'data:image/png;base64,' + empleado.foto;
+    }
+</script>

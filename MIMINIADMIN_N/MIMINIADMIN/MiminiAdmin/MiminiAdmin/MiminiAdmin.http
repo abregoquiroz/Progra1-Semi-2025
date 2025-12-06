@@ -1,0 +1,6 @@
+@MiminiAdmin_HostAddress = http://localhost:5100
+
+GET {{MiminiAdmin_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

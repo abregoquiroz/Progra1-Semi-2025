@@ -1,0 +1,82 @@
+﻿<form id="frmBusquedaEmpleados">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Consulta de Empleados
+
+                <div class="ms-auto">
+                    <button data-form="busqueda_empleado" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <table id="tblConsultaEmpleados" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th colspan="5">
+                            <input name="txtBuscarEmpleado" id="txtBuscarEmpleado" type="search" class="form-control" placeholder="Buscar empleados por Nombre, Codigo" />
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Codigo</th>
+                        <th>Apellido</th>
+                        <th>Telefono</th>
+                        <th>Cargo</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</form>
+<script>
+    listarEmpleados();
+
+    txtBuscarEmpleado.addEventListener('keyup', e => {
+        listarEmpleados(txtBuscarEmpleado.value);
+    });
+
+    async function listarEmpleados(buscar='') {
+        let empleados = await obtenerEmpleados(buscar),
+            filas = '';
+        empleados.forEach(empleado => {
+            filas += `
+                <tr onClick='mostrarDatosEmpleado(${JSON.stringify(empleado)})'>
+                    <td>${empleado.Nombre}</td>
+                    <td>${empleado.Apellido}</td>
+                    <td>${empleado.Codigo}</td>
+                    <td>${empleado.Telefono}</td>
+                    <td>${empleado.Cargo}</td>
+                    <td><button type="button" class="btn btn-outline-danger btn-sm" onClick='eliminarEmpleado(${JSON.stringify(empleado)}, event)'>DEL</button>
+                </tr>
+            `;
+        });
+        document.querySelector("#tblConsultaEmpleados > tbody").innerHTML = filas;
+    }
+    async function eliminarEmpleado(empleado, event) {
+        event.preventDefault();
+
+        if (confirm(`Esta seguro de eliminar a ${empleado.Nombre.trim()}?`) ) {
+            const respuesta = await fetch(`/api/Empleados/${empleado.IdEmpleados}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }), data = await respuesta.text();
+            if (data && data.length > 0) {
+                alert(`Error, nose pudo eliminar el empleado ${empleado.Nombre}, error: ${data}`);
+                return;
+            }
+            listarEmpleados();
+        }
+    }
+    function mostrarDatosEmpleado(empleado) {
+        if (formActivo == "matricula") {
+            txtEmpleadoMatricula.value = empleado.Nombre;
+        } else {
+            modificarEmpleado(empleado);
+        }
+    }
+</script>
