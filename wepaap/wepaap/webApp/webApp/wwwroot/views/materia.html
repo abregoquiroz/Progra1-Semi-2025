@@ -1,0 +1,91 @@
+﻿<form id="frmMateria">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Administracion de Materias
+
+                <div class="ms-auto">
+                    <button data-form="materia" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <div class="row p-1">
+                <div class="col-3 col-md-2">CODIGO</div>
+                <div class="col-9 col-md-4">
+                    <input required type="text" class="form-control" id="txtCodigoMateria" name="txtCodigoMateria" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">NOMBRE</div>
+                <div class="col-9 col-md-8">
+                    <input required type="text" class="form-control" id="txtNombreMateria" name="txtNombreMateria" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">UV</div>
+                <div class="col-9 col-md-10">
+                    <input required type="text" class="form-control" id="txtUvMateria" name="txtUvMateria" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-12 text-center">
+                    <input type="submit" class="btn btn-outline-primary" value="Guardar" />
+                    <input type="reset" class="btn btn-outline-warning" value="Nuevo" />
+                    <input type="button" class="btn btn-outline-success" value="Buscar" onclick="abrirVentana('busqueda_materia')" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    var accion = 'nuevo',
+        idMateria = 0;
+    frmMateria.addEventListener('submit', e => {
+        e.preventDefault();
+        guardarMateria();
+    });
+    frmMateria.addEventListener('reset', e => {
+        e.preventDefault();
+        limpiarDatosMateria();
+    });
+    async function guardarMateria() {
+        let datos = {
+            codigo: txtCodigoMateria.value,
+            nombre: txtNombreMateria.value,
+            uv: txtUvMateria.value
+        },
+            url = 'https://localhost:7005/api/Materias',
+            method = 'POST';
+        if (accion == "modificar") {
+            method = 'PUT';
+            url = `https://localhost:7005/api/Materias/${idMateria}`;
+            datos.idMateria = idMateria;
+        }
+        const respuesta = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(datos)
+        }), materia = await respuesta.json();
+        if ((materia?.idMateria || 0) > 0) {
+            limpiarDatosMateria();
+            listarMaterias(txtBuscarMateria.value || '');
+        }
+    }
+    function limpiarDatosMateria() {
+        accion = "nuevo";
+        idMateria = 0;
+        txtCodigoMateria.value = "";
+        txtNombreMateria.value = "";
+        txtUvMateria.value = "";
+    }
+    function modificarMateria(materia) {
+        accion = "modificar";
+        idMateria = materia.idMateria;
+        txtCodigoMateria.value = materia.codigo;
+        txtNombreMateria.value = materia.nombre;
+        txtUvMateria.value = materia.uv;
+    }
+</script>

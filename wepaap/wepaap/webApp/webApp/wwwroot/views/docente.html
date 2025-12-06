@@ -1,0 +1,136 @@
+﻿<form id="frmDocente">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Administracion de Docentes
+
+                <div class="ms-auto">
+                    <button data-form="docente" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <div class="row p-1">
+                <div class="col-3 col-md-2">CODIGO</div>
+                <div class="col-9 col-md-4">
+                    <input required type="text" class="form-control" id="txtCodigoDocente" name="txtCodigoDocente" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">NOMBRE</div>
+                <div class="col-9 col-md-8">
+                    <input required type="text" class="form-control" id="txtNombreDocente" name="txtNombreDocente" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">DIRECCION</div>
+                <div class="col-9 col-md-10">
+                    <input required type="text" class="form-control" id="txtDireccionDocente" name="txtDireccionDocente" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">TELEFONO</div>
+                <div class="col-9 col-md-4">
+                    <input type="text" class="form-control" id="txtTelefonoDocente" name="txtTelefonoDocente" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">EMAIL</div>
+                <div class="col-9 col-md-4">
+                    <input type="email" class="form-control" id="txtEmailDocente" name="txtEmailDocente" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">FOTO</div>
+                <div class="col-9 col-md-4">
+                    <div class="input-group mb-3">
+                        <label class="input-group-text" for="imgFotoDocente">Subir</label>
+                        <input type="file" class="form-control" id="imgFotoDocente" name="imgFotoDocente"
+                               accept="image/*" onchange="seleccionarImg(this)" />
+                    </div>
+                </div>
+                <div class="col-3 col-md-4">
+                    <img class="img-thumbnail rounded" id="imgPreVisualizacionFotoDocente" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-12 text-center">
+                    <input type="submit" class="btn btn-outline-primary" value="Guardar" />
+                    <input type="reset" class="btn btn-outline-warning" value="Nuevo" />
+                    <input type="button" class="btn btn-outline-success" value="Buscar" onclick="abrirVentana('busqueda_docente')" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    var accion = 'nuevo',
+        idDocente = 0,
+        miFoto = '';
+    frmDocente.addEventListener('submit', e => {
+        e.preventDefault();
+        guardarDocente();
+    });
+    frmDocente.addEventListener('reset', e => {
+        e.preventDefault();
+        limpiarDatosDocente();
+    });
+    function seleccionarImg(file) {
+        let archivo = file.files[0] || '';
+        const lector = new FileReader();
+        lector.onload = e=> {
+            miFoto = e.target.result;
+            imgPreVisualizacionFotoDocente.src = miFoto;
+        };
+        lector.readAsDataURL(archivo);
+    }
+    async function guardarDocente() {
+        let datos = {
+            codigo: txtCodigoDocente.value,
+            nombre: txtNombreDocente.value,
+            direccion: txtDireccionDocente.value,
+            telefono: txtTelefonoDocente.value,
+            email: txtEmailDocente.value,
+            foto: miFoto.split(',')[1] || ''
+        },
+            url = 'https://localhost:7005/api/Docentes',
+            method = 'POST';
+        if (accion == "modificar") {
+            method = 'PUT';
+            url = `https://localhost:7005/api/Docentes/${idDocente}`;
+            datos.idDocente = idDocente;
+        }
+        const respuesta = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(datos)
+        }), docente = await respuesta.json();
+        if ((docente?.idDocente || 0) > 0) {
+            limpiarDatosDocente();
+            listarDocentes(txtBuscarDocente.value || '');
+        }
+    }
+    function limpiarDatosDocente() {
+        accion = "nuevo";
+        idDocente = 0;
+        txtCodigoDocente.value = "";
+        txtNombreDocente.value = "";
+        txtDireccionDocente.value = "";
+        txtTelefonoDocente.value = "";
+        txtEmailDocente.value = "";
+        miFoto = '';
+        imgPreVisualizacionFotoDocente.src= '';
+    }
+    function modificarDocente(docente) {
+        accion = "modificar";
+        idDocente = docente.idDocente;
+        txtCodigoDocente.value = docente.codigo;
+        txtNombreDocente.value = docente.nombre;
+        txtDireccionDocente.value = docente.direccion;
+        txtTelefonoDocente.value = docente.telefono;
+        txtEmailDocente.value = docente.email;
+        miFoto = 'data:image/png;base64,' + docente.foto;
+    }
+</script>

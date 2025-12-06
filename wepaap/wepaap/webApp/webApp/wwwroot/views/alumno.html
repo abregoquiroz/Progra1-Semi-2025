@@ -1,0 +1,100 @@
+﻿<form id="frmAlumno">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Administracion de Alumnos
+
+                <div class="ms-auto">
+                    <button data-form="alumno" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <div class="row p-1">
+                <div class="col-3 col-md-2">CODIGO</div>
+                <div class="col-9 col-md-4">
+                    <input required type="text" class="form-control" id="txtCodigoAlumno" name="txtCodigoAlumno" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">NOMBRE</div>
+                <div class="col-9 col-md-8">
+                    <input required type="text" class="form-control" id="txtNombreAlumno" name="txtNombreAlumno" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">DIRECCION</div>
+                <div class="col-9 col-md-10">
+                    <input required type="text" class="form-control" id="txtDireccionAlumno" name="txtDireccionAlumno" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-3 col-md-2">TELEFONO</div>
+                <div class="col-9 col-md-4">
+                    <input type="text" class="form-control" id="txtTelefonoAlumno" name="txtTelefonoAlumno" />
+                </div>
+            </div>
+            <div class="row p-1">
+                <div class="col-12 text-center">
+                    <input type="submit" class="btn btn-outline-primary" value="Guardar" />
+                    <input type="reset" class="btn btn-outline-warning" value="Nuevo" />
+                    <input type="button" class="btn btn-outline-success" value="Buscar" onclick="formActivo = 'alumno'; abrirVentana('busqueda_alumno')" />
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    var accion = 'nuevo',
+        idAlumno = 0;
+    frmAlumno.addEventListener('submit', e => {
+        e.preventDefault();
+        guardarAlumno();
+    });
+    frmAlumno.addEventListener('reset', e => {
+        e.preventDefault();
+        limpiarDatosAlumno();
+    });
+    async function guardarAlumno() {
+        let datos = {
+            codigo: txtCodigoAlumno.value,
+            nombre: txtNombreAlumno.value,
+            direccion: txtDireccionAlumno.value,
+            telefono: txtTelefonoAlumno.value
+        },
+            url = 'https://localhost:7005/api/Alumnos',
+            method = 'POST';
+        if (accion == "modificar") {
+            method = 'PUT';
+            url = `https://localhost:7005/api/Alumnos/${idAlumno}`;
+            datos.idAlumno = idAlumno;
+        }
+        const respuesta = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(datos)
+        }), alumno = await respuesta.json();
+        if ((alumno?.idAlumno || 0) > 0) {
+            limpiarDatosAlumno();
+            listarAlumnos(txtBuscarAlumno.value || '');
+        }
+    }
+    function limpiarDatosAlumno() {
+        accion = "nuevo";
+        idAlumno = 0;
+        txtCodigoAlumno.value = "";
+        txtNombreAlumno.value = "";
+        txtDireccionAlumno.value = "";
+        txtTelefonoAlumno.value = "";
+    }
+    function modificarAlumno(alumno) {
+        accion = "modificar";
+        idAlumno = alumno.idAlumno;
+        txtCodigoAlumno.value = alumno.codigo;
+        txtNombreAlumno.value = alumno.nombre;
+        txtDireccionAlumno.value = alumno.direccion;
+        txtTelefonoAlumno.value = alumno.telefono;
+    }
+</script>

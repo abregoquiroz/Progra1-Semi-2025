@@ -1,0 +1,82 @@
+﻿<form id="frmBusquedaDocente">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Consulta de Docentes
+
+                <div class="ms-auto">
+                    <button data-form="busqueda_docente" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <table id="tblConsultaDocentes" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th colspan="5">
+                            <input name="txtBuscarDocente" id="txtBuscarDocente" type="search" class="form-control" placeholder="Buscar docentes por nombre, codigo" />
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>CODIGO</th>
+                        <th>NOMBRE</th>
+                        <th>DIRECCION</th>
+                        <th>TEELFONO</th>
+                        <th>EMAIL</th>
+                        <th>FOTO</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</form>
+<script>
+    listarDocentes();
+
+    txtBuscarDocente.addEventListener('keyup', e => {
+        listarDocentes(txtBuscarDocente.value);
+    });
+
+    async function listarDocentes(buscar='') {
+        const respuesta = await fetch(`/api/Docentes/buscar?buscar=${buscar}`, {
+            method:'GET',
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }), docentes = await respuesta.json();
+        let filas = '';
+        docentes.forEach(docente => {
+            filas += `
+                <tr onClick='modificarDocente(${JSON.stringify(docente)})'>
+                    <td>${docente.codigo}</td>
+                    <td>${docente.nombre}</td>
+                    <td>${docente.direccion}</td>
+                    <td>${docente.telefono}</td>
+                    <td>${docente.email}</td>
+                    <td><img width="80" src="${`data:image/png;base64,${docente.foto}` }" class="img-thumbnail rounded"/></td>
+                    <td><button type="button" class="btn btn-outline-danger btn-sm" onClick='eliminarDocente(${JSON.stringify(docente)}, event)'>DEL</button>
+                </tr>
+            `;
+        });
+        document.querySelector("#tblConsultaDocentes > tbody").innerHTML = filas;
+    }
+    async function eliminarDocente(docente, event) {
+        event.preventDefault();
+
+        if (confirm(`Esta seguro de eliminar a ${docente.nombre.trim()}?`) ) {
+            const respuesta = await fetch(`/api/Docentes/${docente.idDocente}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }), data = await respuesta.text();
+            if (data && data.length > 0) {
+                alert(`Error, nose pudo eliminar el docente ${docente.nombre}, error: ${data}`);
+                return;
+            }
+            listarDocentes();
+        }
+    }
+</script>

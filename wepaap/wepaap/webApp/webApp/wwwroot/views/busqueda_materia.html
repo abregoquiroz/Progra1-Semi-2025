@@ -1,0 +1,76 @@
+﻿<form id="frmBusquedaMateria">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Consulta de Materias
+
+                <div class="ms-auto">
+                    <button data-form="busqueda_materia" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <table id="tblConsultaMaterias" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th colspan="5">
+                            <input name="txtBuscarMateria" id="txtBuscarMateria" type="search" class="form-control" placeholder="Buscar materias por nombre, codigo" />
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>CODIGO</th>
+                        <th>NOMBRE</th>
+                        <th>UV</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</form>
+<script>
+    listarMaterias();
+
+    txtBuscarMateria.addEventListener('keyup', e => {
+        listarMaterias(txtBuscarMateria.value);
+    });
+
+    async function listarMaterias(buscar='') {
+        const respuesta = await fetch(`/api/Materias/buscar?buscar=${buscar}`, {
+            method:'GET',
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }), materias = await respuesta.json();
+        let filas = '';
+        materias.forEach(materia => {
+            filas += `
+                <tr onClick='modificarMateria(${JSON.stringify(materia)})'>
+                    <td>${materia.codigo}</td>
+                    <td>${materia.nombre}</td>
+                    <td>${materia.uv}</td>
+                    <td><button type="button" class="btn btn-outline-danger btn-sm" onClick='eliminarMateria(${JSON.stringify(materia)}, event)'>DEL</button>
+                </tr>
+            `;
+        });
+        document.querySelector("#tblConsultaMaterias > tbody").innerHTML = filas;
+    }
+    async function eliminarMateria(materia, event) {
+        event.preventDefault();
+
+        if (confirm(`Esta seguro de eliminar a ${materia.nombre.trim()}?`) ) {
+            const respuesta = await fetch(`/api/Materias/${materia.idMateria}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }), data = await respuesta.text();
+            if (data && data.length > 0) {
+                alert(`Error, nose pudo eliminar el materia ${materia.nombre}, error: ${data}`);
+                return;
+            }
+            listarMaterias();
+        }
+    }
+</script>

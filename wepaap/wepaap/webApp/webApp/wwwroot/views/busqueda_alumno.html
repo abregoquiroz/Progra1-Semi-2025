@@ -1,0 +1,80 @@
+﻿<form id="frmBusquedaAlumno">
+    <div class="card border-secondary mb-3" style="min-width: 700px;">
+        <div class="card-header">
+            <div class="d-flex">
+                Consulta de Alumnos
+
+                <div class="ms-auto">
+                    <button data-form="busqueda_alumno" type="button" class="btn-close" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body text-secondary">
+            <table id="tblConsultaAlumnos" class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th colspan="5">
+                            <input name="txtBuscarAlumno" id="txtBuscarAlumno" type="search" class="form-control" placeholder="Buscar alumnos por nombre, codigo" />
+                        </th>
+                    </tr>
+                    <tr>
+                        <th>CODIGO</th>
+                        <th>NOMBRE</th>
+                        <th>DIRECCION</th>
+                        <th>TEELFONO</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</form>
+<script>
+    listarAlumnos();
+
+    txtBuscarAlumno.addEventListener('keyup', e => {
+        listarAlumnos(txtBuscarAlumno.value);
+    });
+
+    async function listarAlumnos(buscar='') {
+        let alumnos = await obtenerAlumnos(buscar),
+            filas = '';
+        alumnos.forEach(alumno => {
+            filas += `
+                <tr onClick='mostrarDatosAlumno(${JSON.stringify(alumno)})'>
+                    <td>${alumno.codigo}</td>
+                    <td>${alumno.nombre}</td>
+                    <td>${alumno.direccion}</td>
+                    <td>${alumno.telefono}</td>
+                    <td><button type="button" class="btn btn-outline-danger btn-sm" onClick='eliminarAlumno(${JSON.stringify(alumno)}, event)'>DEL</button>
+                </tr>
+            `;
+        });
+        document.querySelector("#tblConsultaAlumnos > tbody").innerHTML = filas;
+    }
+    async function eliminarAlumno(alumno, event) {
+        event.preventDefault();
+
+        if (confirm(`Esta seguro de eliminar a ${alumno.nombre.trim()}?`) ) {
+            const respuesta = await fetch(`/api/Alumnos/${alumno.idAlumno}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }), data = await respuesta.text();
+            if (data && data.length > 0) {
+                alert(`Error, nose pudo eliminar el alumno ${alumno.nombre}, error: ${data}`);
+                return;
+            }
+            listarAlumnos();
+        }
+    }
+    function mostrarDatosAlumno(alumno) {
+        if (formActivo == "matricula") {
+            txtAlumnoMatricula.value = alumno.nombre;
+        } else {
+            modificarAlumno(alumno);
+        }
+    }
+</script>
